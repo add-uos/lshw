@@ -17,7 +17,8 @@ export DESTDIR
 export PREFIX
 export SBINDIR
 export MANDIR
-export DATADIR
+COMPLETIONDIR=$(PREFIX)/share/bash-completion/completions
+export COMPLETIONDIR
 export SQLITE
 export ZLIB
 
@@ -129,6 +130,8 @@ install: all
 	$(INSTALL) -m 0644 $(PACKAGENAME).1 $(DESTDIR)/$(MANDIR)/man1
 	$(INSTALL) -d -m 0755 $(DESTDIR)/$(DATADIR)/$(PACKAGENAME)
 	$(INSTALL) -m 0644 $(DATAFILES) $(DESTDIR)/$(DATADIR)/$(PACKAGENAME)
+	$(INSTALL) -d -m 0755 $(DESTDIR)/$(COMPLETIONDIR)
+	$(INSTALL) -m 0644 ../bash-completion/$(PACKAGENAME) $(DESTDIR)/$(COMPLETIONDIR)
 	make -C po install
 
 install-gui: gui
