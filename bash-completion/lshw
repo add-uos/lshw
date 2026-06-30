@@ -1,0 +1,81 @@
+# bash completion for lshw(1)
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# lshw - list hardware
+# https://github.com/lyonel/lshw
+#
+_lshw_module()
+{
+	local cur prev words cword
+	_init_completion || return
+
+	# All short/long options that take NO argument
+	local all_flags=(
+		-version
+		-help --help
+		-X
+		-html
+		-xml
+		-json
+		-short
+		-businfo
+		-quiet
+		-sanitize -sanitise
+		-numeric
+		-notime
+		-verbose
+	)
+
+	# Options that require an argument
+	local arg_opts=( -dump -class -C -c -enable -disable )
+
+	# Fixed set of test names for -enable / -disable
+	local tests=(
+		dmi device-tree spd memory cpuinfo cpuid
+		pci isapnp pcmcia ide usb scsi network
+	)
+
+	# Common hardware class names for -class / -C / -c
+	local classes=(
+		processor memory disk storage network display
+		multimedia communication system bridge bus generic
+		input pointing printer scsi tape usb video
+	)
+
+	case $prev in
+		-dump)
+			_filedir
+			return
+			;;
+		-class|-C|-c)
+			local IFS=$'\n'
+			COMPREPLY=( $(compgen -W "${classes[*]}" -S ',' -- "$cur") )
+			__lshw_append_comma
+			return
+			;;
+		-enable|-disable)
+			COMPREPLY=( $(compgen -W "${tests[*]}" -- "$cur") )
+			return
+			;;
+	esac
+
+	# If the previous word is an arg option, nothing more to complete
+	if [[ " ${arg_opts[*]} " == *" $prev "* ]]; then
+		return
+	fi
+
+	# Default: offer all option flags
+	COMPREPLY=( $(compgen -W "${all_flags[*]} ${arg_opts[*]}" -- "$cur") )
+} &&
+complete -F _lshw_module lshw
+
+# Helper: if the user typed a trailing comma, keep it and offer another value
+__lshw_append_comma()
+{
+	local i
+	for (( i = 0; i < ${#COMPREPLY[@]}; i++ )); do
+		if [[ ${COMPREPLY[i]} == *, ]]; then
+			COMPREPLY[i]="${COMPREPLY[i]}${cur}"
+		fi
+	done
+}
